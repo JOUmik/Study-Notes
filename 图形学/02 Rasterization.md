@@ -12,9 +12,9 @@
 
 Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Canonical Cube是[-1, 1]范围的，要把它映射到对应Pixel上
 
-![image-20240211223353833](Images\image-20240211223353833.png)
+<img src="Images\image-20240211223353833.png" alt="image-20240211223353833" style="zoom:67%;" />
 
-![image-20240211223629128](Images\image-20240211223629128.png)
+<img src="Images\image-20240211223629128.png" alt="image-20240211223629128" style="zoom:67%;" />
 
 
 
@@ -22,11 +22,11 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 为了将Canonical Cube映射到屏幕空间上，要使用视口变换
 
-![image-20240211223736910](Images\image-20240211223736910.png)
+<img src="Images\image-20240211223736910.png" alt="image-20240211223736910" style="zoom: 67%;" />
 
 ## 3. Triangles - Fundamental Shape Primitives
 
-![image-20240211230155822](Images\image-20240211230155822.png)
+<img src="Images\image-20240211230155822.png" alt="image-20240211230155822" style="zoom: 67%;" />
 
 
 
@@ -34,15 +34,15 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 在图形学中，采样是一种关键思想，在光栅化这部分，采样用来确定屏幕空间中某个像素对应的RGB应该是多少
 
-![image-20240212105753273](Images\image-20240212105753273.png)
+<img src="Images\image-20240212105753273.png" alt="image-20240212105753273" style="zoom:67%;" />
 
 在不同的像素中心，确认其是 1 还是 0 ， 1 代表在三角形内， 0 代表在三角形外
 
-![image-20240212110012966](Images\image-20240212110012966.png)
+<img src="Images\image-20240212110012966.png" alt="image-20240212110012966" style="zoom:67%;" />
 
 判断一点是否在三角形内的方法是叉乘，使用右手螺旋定则，如果方向一致则在三角形内，否则在三角形外
 
-![image-20240212110417486](Images\image-20240212110417486.png)
+<img src="Images\image-20240212110417486.png" alt="image-20240212110417486" style="zoom:67%;" />
 
 **Tip:**
 
@@ -56,7 +56,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 #### 4.1.1 Axis-aligned Bounding Box(AABB)
 
-![image-20240212111824443](Images\image-20240212111824443.png)
+<img src="Images\image-20240212111824443.png" alt="image-20240212111824443" style="zoom:67%;" />
 
  
 
@@ -64,7 +64,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 直接采样后图像会出现如图所示的锯齿，解决锯齿问题是图形学非常重要的一大课题
 
-![image-20240212112603383](Images\image-20240212112603383.png)
+<img src="Images\image-20240212112603383.png" alt="image-20240212112603383" style="zoom:67%;" />
 
 ### 5.1 Sampling Artifacts in CG
 
@@ -74,7 +74,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 隔行采样等方法会出现这种问题
 
-![image-20240212114901109](Images\image-20240212114901109.png)
+<img src="Images\image-20240212114901109.png" alt="image-20240212114901109" style="zoom:67%;" />
 
 #### 5.1.3 Wagon Wheel Illusion
 
@@ -82,11 +82,11 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 ### 5.2 Blurring Before Sampling
 
-![image-20240212120044537](Images\image-20240212120044537.png)
+<img src="Images\image-20240212120044537.png" alt="image-20240212120044537" style="zoom:67%;" />
 
 模糊后再采样，锯齿问题小了很多
 
-![image-20240212120153128](Images\image-20240212120153128.png)
+<img src="Images\image-20240212120153128.png" alt="image-20240212120153128" style="zoom:67%;" />
 
 **Tip：**
 
@@ -94,29 +94,29 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 ### 5.3 Frequency Domain(频域)
 
- ![image-20240212121453526](Images\image-20240212121453526.png)
+​                                         <img src="Images\image-20240212121453526.png" alt="image-20240212121453526" style="zoom:67%;" />
 
 频率（f） 与周期（T）成反比， f 越大变化越快
 
-![image-20240212121546203](Images\image-20240212121546203.png)
+<img src="Images\image-20240212121546203.png" alt="image-20240212121546203" style="zoom:67%;" />
 
 #### 5.3.1 Fourier Transform(傅里叶变换)
 
 **傅里叶级数展开**：任何一个周期函数都可以把它写成一系列正弦和余弦函数的线性组合以及一个常数项
 
-![image-20240212122053543](Images\image-20240212122053543.png)
+<img src="Images\image-20240212122053543.png" alt="image-20240212122053543" style="zoom:67%;" />
 
 傅里叶变换（时域 => 频域）和逆傅里叶变换（频域 => 时域）
 
-![image-20240212122159714](Images\image-20240212122159714.png)
+<img src="Images\image-20240212122159714.png" alt="image-20240212122159714" style="zoom:67%;" />
 
 频率更高的函数需要更好频率的采样才能保证不走样：
 
-![image-20240212122445165](Images\image-20240212122445165.png)
+<img src="Images\image-20240212122445165.png" alt="image-20240212122445165" style="zoom:67%;" />
 
  当采样高频率的函数时可能得到的采样结果和采样某低频率的函数相同，此时就会出现走样问题
 
-![image-20240212123158851](Images\image-20240212123158851.png)
+<img src="Images\image-20240212123158851.png" alt="image-20240212123158851" style="zoom:67%;" />
 
 **傅里叶变换结果：**
 
@@ -124,27 +124,27 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 频域图中类似坐标轴一样的白线是因为把无数张一样的图无缝连接在一起，边界两边的变化剧烈导致的，可以**用此来判断图片是否可以无缝连接**，可以无缝连接的图片应该没有这个白色的轴
 
-![image-20240212123500925](Images\image-20240212123500925.png)
+<img src="Images\image-20240212123500925.png" alt="image-20240212123500925" style="zoom:67%;" />
 
 **高通滤波**：将低频信息抹掉再用逆傅里叶变换的结果，所以高频信息代表着图像中的轮廓边界，因为边界两边变化剧烈所以是高频的
 
-![image-20240212123930427](Images\image-20240212123930427.png)
+<img src="Images\image-20240212123930427.png" alt="image-20240212123930427" style="zoom:67%;" />
 
  **低通滤波**：将高频信息去掉，即把轮廓去掉变模糊
 
-![image-20240212124328778](Images\image-20240212124328778.png)
+<img src="Images\image-20240212124328778.png" alt="image-20240212124328778" style="zoom:67%;" />
 
 **带通滤波**：不是特别明显的轮廓信息
 
-![image-20240212124534756](Images\image-20240212124534756.png)
+<img src="Images\image-20240212124534756.png" alt="image-20240212124534756" style="zoom:67%;" />
 
 #### 5.3.2 Convolution(卷积)
 
-![image-20240212130622213](Images\image-20240212130622213.png)
+<img src="Images\image-20240212130622213.png" alt="image-20240212130622213" style="zoom: 67%;" />
 
 对时域上的图进行卷积和对其对应频域上的图乘以卷积频域上的图得到的结果一样
 
-![image-20240212130953222](Images\image-20240212130953222.png)
+<img src="Images\image-20240212130953222.png" alt="image-20240212130953222" style="zoom:67%;" />
 
 
 
@@ -163,23 +163,23 @@ Box越大失去更多的较高频信息
 - 一种是物理上使用更高分辨率的屏幕来提高采样率；
 - 一种是使用模糊过滤掉高频信息，再采样；
 
-![image-20240212132615605](Images\image-20240212132615605.png)
+<img src="Images\image-20240212132615605.png" alt="image-20240212132615605" style="zoom:67%;" />
 
-![image-20240212132827313](Images\image-20240212132827313.png)
+<img src="Images\image-20240212132827313.png" alt="image-20240212132827313" style="zoom:67%;" />
 
 #### 5.4.1 MSAA(多重采样抗锯齿)
 
 假设像素能被划分为无数个小的像素，每个像素都有一个中心，将它们的结果加起来平均
 
-![image-20240212134211761](Images\image-20240212134211761.png)
+<img src="Images\image-20240212134211761.png" alt="image-20240212134211761" style="zoom: 80%;" />
 
 **Step 1:** 近似实现模糊这个步骤
 
-![image-20240212134312839](Images\image-20240212134312839.png)
+<img src="Images\image-20240212134312839.png" alt="image-20240212134312839" style="zoom:67%;" />
 
 **Step 2**: 近似实现采样这个步骤
 
-![image-20240212134354581](Images\image-20240212134354581.png)
+<img src="Images\image-20240212134354581.png" alt="image-20240212134354581" style="zoom:67%;" />
 
 **Cost:** 
 
@@ -209,20 +209,20 @@ Box越大失去更多的较高频信息
 
 **问题**：会出现无法解决的深度顺序（互相遮挡），如下图所示：
 
-![image-20240212162711821](Images\image-20240212162711821.png)
+<img src="Images\image-20240212162711821.png" alt="image-20240212162711821" style="zoom:67%;" />
 
 ### 6.2 Z-buffering
 
 同时生成两张图，一张是frame buffer存储颜色信息，另一个是depth buffer存储深度信息
 
-![image-20240212162847516](Images\image-20240212162847516.png)
+<img src="Images\image-20240212162847516.png" alt="image-20240212162847516" style="zoom:67%;" />
 
 越远值越大颜色越白，越近值越小颜色越黑
 
-![image-20240212163122852](Images\image-20240212163122852.png)
+<img src="Images\image-20240212163122852.png" alt="image-20240212163122852" style="zoom: 80%;" />
 
 **伪代码**：
 
 （相同深度的话不进行更新，保存最早的）
 
-![image-20240212163434437](Images\image-20240212163434437.png)
+<img src="Images\image-20240212163434437.png" alt="image-20240212163434437" style="zoom:80%;" />
