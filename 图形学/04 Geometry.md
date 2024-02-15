@@ -26,7 +26,7 @@
 
 ### 1.3 距离函数
 
-![image-20240215120105399](Images\image-20240215120105399.png)
+<img src="Images\image-20240215120105399.png" alt="image-20240215120105399" style="zoom:80%;" />
 
 ## 2. “Explicit” Representations of Geometry(几何的显式表示)
 
@@ -42,3 +42,4 @@
 
 **Tip:** 隐式几何表示和显式几何表示的优缺点相反，需要根据需求选取合适的几何表达方法
 
+ 
