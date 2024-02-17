@@ -48,7 +48,7 @@ z轴满足 z = n 或 z = f 时没有任何变化，得到如下关系
 
 ![image-20240211211509741](Images\image-20240211211509741.png)
 
-![image-20240211212045014](C:\Users\Yan Liu\AppData\Roaming\Typora\typora-user-images\image-20240211212045014.png)
+![image-20240211212045014](Images\image-20240211212045014.png)
 
 
 
