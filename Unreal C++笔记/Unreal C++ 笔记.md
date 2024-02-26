@@ -535,3 +535,164 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 }
 ~~~
 
+
+
+## 18. Trace
+
+### (1) BoxTrace
+
+~~~c++
+const FVector StartPoint = BoxTraceStartPoint->GetComponentLocation();
+const FVector EndPoint = BoxTraceEndPoint->GetComponentLocation();
+
+TArray<AActor*> ActorsToIgnore;
+FHitResult BoxHitResult;
+	
+UKismetSystemLibrary::BoxTraceSingle(
+	this,
+	StartPoint,
+	EndPoint,
+	FVector(5.f, 5.f, 5.f),
+	BoxTraceStartPoint->GetComponentRotation(),
+	ETraceTypeQuery::TraceTypeQuery1,
+	false,
+	ActorsToIgnore,
+	EDrawDebugTrace::Type::ForDuration,
+	BoxHitResult,
+	true
+	);
+~~~
+
+
+
+## 19. Collision
+
+~~~c++
+GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+GetMesh()->SetCollisionObjectType(ECC_WorldDynamic);
+GetMesh()->SetCollisionResponseToAllChannels(ECR_Overlap);
+GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+GetMesh()->SetGenerateOverlapEvents(true);
+~~~
+
+
+
+## 20. Interface
+
+- **Determine Whether a Class Implements an Interface**
+
+~~~c++
+bool bIsImplemented;
+
+/* bIsImplemented is true if OriginalObject implements UReactToTriggerInterface */
+bIsImplemented = OriginalObject->GetClass()->ImplementsInterface(UReactToTriggerInterface::StaticClass());
+
+/* bIsImplemented is true if OriginalObject implements UReactToTriggerInterface */
+bIsImplemented = OriginalObject->Implements<UReactToTriggerInterface>();
+
+/* ReactingObject is non-null if OriginalObject implements UReactToTriggerInterface in C++ */
+IReactToTriggerInterface* ReactingObject = Cast<IReactToTriggerInterface>(OriginalObject);
+~~~
+
+
+
+## 21. Montage
+
+~~~c++
+void ASlashCharacter::PlayAttackMontage()
+{
+	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		if(AttackMontage)
+		{
+			AnimInstance->Montage_Play(AttackMontage);
+
+			FName SectionName = FName();
+			SectionName = FName("Attack1");
+
+			AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+		}
+		
+	}
+}
+~~~
+
+
+
+## 22. PlaySound
+
+~~~c++
+#include "Kismet/GameplayStatics.h"
+
+if(HitSound)
+{
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		HitSound,
+		ImpactPoint
+		);
+}
+~~~
+
+
+
+## 23. VFX
+
+### (1) Cascade
+
+~~~c++
+.h
+UPROPERTY(EditAnywhere, Category= "CPP Settings|VFX")
+UParticleSystem* HitParticle;
+
+.cpp
+if(HitParticle)
+{
+	UGameplayStatics::SpawnEmitterAtLocation(
+		GetWorld(),
+		HitParticle,
+		ImpactPoint
+	);
+}
+~~~
+
+
+
+### (2) Niagram
+
+
+
+## 24. DrawDebug
+
+### (1) DrawDebugArrow
+
+~~~c++
+UKismetSystemLibrary::DrawDebugArrow(
+	this,
+	GetActorLocation(),
+	GetActorLocation()+ToHit*80,
+	5.f,
+	FColor::Purple,
+	5.f
+);
+~~~
+
+
+
+### (2) DrawDebugSphere
+
+~~~c++
+#include "DrawDebugHelpers.h"
+
+DrawDebugSphere(
+	GetWorld(), 
+	Location, 
+	25.f, 
+	12,
+	FColor::Red, 
+	true
+);
+~~~
+
+
+
