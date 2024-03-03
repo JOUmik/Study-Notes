@@ -74,10 +74,32 @@ UE5 Groom毛发设置绑定后 消失不见问题 或者导入第三方角色 �
 
 第一，需要确定 项目设置-SupportCompute Skin Cache 为**开启**状态
 
-![image-20240127214019703](E:\笔记\Unreal 5 操作笔记\images\4.png)
+![image-20240127214019703](images\4.png)
 
 第二，确定skeltal mesh 属性页 Skin Cache Uage 为 **Enable** 的状态
 
-![image-20240127214122388](E:\笔记\Unreal 5 操作笔记\images\5.png)
+![image-20240127214122388](images\5.png)
 
 修改以上设置后需要**重启引擎**
+
+
+
+## 8. Multithreading
+
+动画蓝图可以使用绑定了相同骨骼的其他动画蓝图，当每个动画蓝图都在Update Animation节点中做了大量的操作时，很可能会像Github一样出现冲突，为了解决这个问题，可以使用UE5自带的multithreading功能，该功能对应的函数叫做 **Blueprint Thread Safe Update Animation**, 如下图所示：
+
+![image-20240301150637672](images\image-20240301150637672.png)
+
+将需要赋值的变量或者需要使用的函数通过 **Property Access** 获得：
+
+![image-20240301150800933](images\image-20240301150800933.png)
+
+
+
+假设所有的变量在更新前称为状态A，更新后称为状态B，通过这种更新方式，所有的动画蓝图同时更新，每次更新都使用状态A的变量，当所有动画蓝图更新一次后，再将所有变量都更新为状态B，以此来解决冲突问题
+
+
+
+## 9. Nav Mesh Bounds Volume
+
+按P显示Nav区域，所有内置的Nav功能只有在该Volume内才会生效

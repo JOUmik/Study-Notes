@@ -490,6 +490,14 @@ GetWorldTimerManager().SetTimer(
 
 [FTimerManager | Unreal Engine 5.2 Documentation](https://docs.unrealengine.com/5.3/en-US/API/Runtime/Engine/FTimerManager/)
 
+- 清除timer
+
+  ~~~c++
+  GetWorldTimerManager().ClearTimer(StartGameTimerHandle);
+  ~~~
+
+  
+
 
 
 ## 17. ApplyDamage
@@ -497,8 +505,12 @@ GetWorldTimerManager().SetTimer(
 受到伤害的Actor或Comp.h
 
 ~~~c++
+//方法一：回调函数
 UFUNCTION()
 void DamagedTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* Instigator, AActor* DamageCauser)
+    
+//方法二：AActor自带的函数（不适用于Component）
+virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 ~~~
 
 
