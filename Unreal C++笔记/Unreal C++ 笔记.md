@@ -653,11 +653,11 @@ if(HitSound)
 ### (1) Cascade
 
 ~~~c++
-.h
+//.h
 UPROPERTY(EditAnywhere, Category= "CPP Settings|VFX")
 UParticleSystem* HitParticle;
 
-.cpp
+//.cpp
 if(HitParticle)
 {
 	UGameplayStatics::SpawnEmitterAtLocation(
@@ -671,6 +671,24 @@ if(HitParticle)
 
 
 ### (2) Niagram
+
+~~~c++
+//.h
+UPROPERTY(EditAnywhere, Category = "CPP Settings|VFX")
+UNiagaraSystem* PickUpEffect;
+
+//.cpp
+if(PickUpEffect)
+{
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		this,
+		PickUpEffect,
+		GetActorLocation()
+	);
+}
+~~~
+
+
 
 
 
