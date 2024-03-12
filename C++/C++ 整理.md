@@ -17,6 +17,7 @@
 - 虚函数表
 - 数组指针
 - 静态存储区的内容
+- const_cast, reinterpret_cast, static_cast
 
 ### 1.3 汇编
 
@@ -61,3 +62,28 @@
 
 - new：new分配的内存块存放在堆上
 
+
+
+## 3. 排序
+
+
+
+## 4. vector
+
+寻找最小元素
+
+```c++
+*min_element(sweetness.begin(),sweetness.end());
+```
+
+统计和：
+
+~~~c++
+accumulate(sweetness.begin(),sweetness.end(), 0)
+~~~
+
+
+
+## 5. 动态多态和静态多态
+
+[C++动态多态详解及三个示例_写一个多态的例子 c++-CSDN博客](https://blog.csdn.net/h799710/article/details/112627090)
