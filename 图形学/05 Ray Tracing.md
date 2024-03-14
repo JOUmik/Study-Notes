@@ -249,7 +249,7 @@ X,Y,Z三个维度按顺序划分
 
  ### 3.2 Important Light Measurements of Interest
 
-#### 3.2.1 Radiant Intensity（辐射强度）：
+#### 3.2.1 Radiant Intensity（辐射强度）
 
 一个点光源每单位立体角释放的能量：
 
