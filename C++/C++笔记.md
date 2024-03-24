@@ -121,3 +121,8 @@ int gcd(int a, int b) {
 [二分查找模板总结-CSDN博客](https://blog.csdn.net/charlsonzhao/article/details/124063879)
 
 [二分查找——三种模板（C++版本）_c++二分查找模板-CSDN博客](https://blog.csdn.net/qq_34732729/article/details/100666158)
+
+
+
+## 15. Substr
+

@@ -157,7 +157,7 @@ $$
 
 $n$​ : 顶点的度
 $$
-new\_position = (1 - n \times u) \times original\_position\ + \ u \times neighbor\_position\_sum 
+new\_position = (1 - n \times u) \times original\_position\ + \ u \times neighbor\_position\_sum
 $$
 
 
