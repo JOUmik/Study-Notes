@@ -848,3 +848,104 @@ Color myColor = Color::RED;  // 注意作用域解析符(::)
 
 ## 21. 函数调用
 
+
+
+## 22 线程
+
+~~~c++
+#include <iostream>
+#include <thread>
+
+static bool s_Finished = false;
+
+void DoWork(){
+    using namespace std::literals::chrono_literals;
+    
+    while(!s_Finished){
+        std::cout<<"Working...\n";
+        std::this_thread::sleep_for(1s);
+    }
+}
+
+int main(){
+    std::thread worker(DoWork);  //创建worker这个线程，它的任务是执行DoWork里的代码
+    
+    std::cin.get();
+    s_Finished = true;
+    
+    worker.join();    //等待worker这个线程运行完，在这之前阻塞
+    std::cin.get();
+}
+~~~
+
+
+
+## 23. 移动语义
+
+​	移动语义本质上允许我们移动对象
+
+~~~c++
+class String{
+public:
+    String() = default;
+    String(const char* string){
+        cout<<"Created!\n";
+        m_size = strlen(string);
+        m_Data = new Char[m_size];
+        memcpy(m_Data, string, m_size);
+    }
+    //移动构造函数
+    String(String&& other) noexcept{
+        cout<<"Moved!\n";
+        m_size = other.m_size;
+        m_Data = other.m_Data;
+        
+        othrt.m_size = 0;
+        other.m_Data = nullptr;  //因为移动构造函数结束后会调用other的析构函数，所以要先将other的指针成员变量置空
+    }
+    
+    //拷贝构造函数
+    String(const String& other){
+        cout<<"Copied!\n";
+        m_size = other.m_size;
+        m_Data = new Char[m_size];
+        memcpy(m_Data, other.m_Data, m_size);
+    }
+    
+    ~String(){
+        cout<<"Destroyed!\n";
+        delete[] m_Data;
+    }
+    
+    void Print(){
+        for(uint32_t i = 0; i<m_size; i++){
+            cout<<m_Data[i];
+        }
+        cout<<"\n";
+    }
+
+private:
+    char* m_Data;
+    uint32_t m_size;
+}
+
+class Entity{
+public:
+    Entity(const String& name):m_Name(name){}
+    Entity(String&& name):m_Name(move(name){}
+    
+    void PrintName(){
+        m_Name.Print();
+    }
+private:
+    String m_Name;
+}
+
+int main(){
+    Entity entity(String("Samuel"));
+    entity.PrintName();
+    
+    cin.get();
+}
+~~~
+
