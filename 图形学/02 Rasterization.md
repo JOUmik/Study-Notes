@@ -4,33 +4,17 @@
 
 ## 1. Introduction
 
-在经过MVP后物体和摄像机被摆放在了正确的位置，下一步就是把物体画出来，这就是rasterization要做的事情， 屏幕就是光栅成像设备，所以光栅化和pixel有关
+在经过MVP和视图变换后物体和摄像机被摆放在了正确的位置并展成了屏幕空间大小，下一步就是把物体画出来，这就是rasterization要做的事情， 屏幕就是光栅成像设备，所以光栅化和pixel有关
 
 
 
-## 2. Canonical Cube to Screen
-
-Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Canonical Cube是[-1, 1]范围的，要把它映射到对应Pixel上
-
-<img src="Images\image-20240211223353833.png" alt="image-20240211223353833" style="zoom:67%;" />
-
-<img src="Images\image-20240211223629128.png" alt="image-20240211223629128" style="zoom:67%;" />
-
-
-
-### 2.1 Viewport transformation(视口变换)
-
-为了将Canonical Cube映射到屏幕空间上，要使用视口变换
-
-<img src="Images\image-20240211223736910.png" alt="image-20240211223736910" style="zoom: 67%;" />
-
-## 3. Triangles - Fundamental Shape Primitives
+## 2. Triangles - Fundamental Shape Primitives
 
 <img src="Images\image-20240211230155822.png" alt="image-20240211230155822" style="zoom: 67%;" />
 
 
 
-## 4. Sample(采样)
+## 3. Sample(采样)
 
 在图形学中，采样是一种关键思想，在光栅化这部分，采样用来确定屏幕空间中某个像素对应的RGB应该是多少
 
@@ -48,39 +32,43 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 当某一像素点处于三角形1和三角形2的共边上，那么该像素点的规则自己定义（OpenGL是**记上不记下，记左不记右**）
 
+**问：除了叉乘还有其他办法判定点在三角形中吗？**
+
+答：有的，还可以计算面积或使用重心坐标
 
 
-### 4.1 Bounding Box(包围盒)
+
+### 3.1 Bounding Box(包围盒)
 
 如果到此结束，那么每个三角形都要遍历一遍整个屏幕空间，为了降低这种巨大的时间和性能开销，包围盒这一概念随即出现
 
-#### 4.1.1 Axis-aligned Bounding Box(AABB)
+#### 3.1.1 Axis-aligned Bounding Box(AABB)
 
 <img src="Images\image-20240212111824443.png" alt="image-20240212111824443" style="zoom:67%;" />
 
  
 
-## 5. Antialiasing(抗锯齿)(反走样)
+## 4. Antialiasing(抗锯齿)(反走样)
 
 直接采样后图像会出现如图所示的锯齿，解决锯齿问题是图形学非常重要的一大课题
 
 <img src="Images\image-20240212112603383.png" alt="image-20240212112603383" style="zoom:67%;" />
 
-### 5.1 Sampling Artifacts in CG
+### 4.1 Sampling Artifacts in CG
 
-#### 5.1.1 Aliasing(锯齿)
+#### 4.1.1 Aliasing(锯齿)
 
-#### 5.1.2 Moire Patterns(摩尔纹)
+#### 4.1.2 Moire Patterns(摩尔纹)
 
 隔行采样等方法会出现这种问题
 
 <img src="Images\image-20240212114901109.png" alt="image-20240212114901109" style="zoom:67%;" />
 
-#### 5.1.3 Wagon Wheel Illusion
+#### 4.1.3 Wagon Wheel Illusion
 
 有时能看到高速行驶的车，轮子的方向好像反了，这是因为人眼在时间上的采样率低
 
-### 5.2 Blurring Before Sampling
+### 4.2 Blurring Before Sampling
 
 <img src="Images\image-20240212120044537.png" alt="image-20240212120044537" style="zoom:67%;" />
 
@@ -92,7 +80,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 不可以先采样再模糊，采样的频率不够导致信息丢失，此时再模糊没有意义（更深层次的原因涉及到信号处理）
 
-### 5.3 Frequency Domain(频域)
+### 4.3 Frequency Domain(频域)
 
 ​                                         <img src="Images\image-20240212121453526.png" alt="image-20240212121453526" style="zoom:67%;" />
 
@@ -100,7 +88,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 <img src="Images\image-20240212121546203.png" alt="image-20240212121546203" style="zoom:67%;" />
 
-#### 5.3.1 Fourier Transform(傅里叶变换)
+#### 4.3.1 Fourier Transform(傅里叶变换)
 
 **傅里叶级数展开**：任何一个周期函数都可以把它写成一系列正弦和余弦函数的线性组合以及一个常数项
 
@@ -138,7 +126,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 <img src="Images\image-20240212124534756.png" alt="image-20240212124534756" style="zoom:67%;" />
 
-#### 5.3.2 Convolution(卷积)
+#### 4.3.2 Convolution(卷积)
 
 <img src="Images\image-20240212130622213.png" alt="image-20240212130622213" style="zoom: 67%;" />
 
@@ -148,7 +136,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 
 
-#### 5.3.3 Filter(滤波器)
+#### 4.3.3 Filter(滤波器)
 
 **Box Filter(低频滤波器)**:
 
@@ -156,7 +144,7 @@ Games101中Pixel的原点在左下角（UE设定是左上角为原点），而Ca
 
 Box越大失去更多的较高频信息
 
-### 5.4 Antialiasing
+### 4.4 Antialiasing
 
 反走样有两种方法：
 
@@ -167,7 +155,7 @@ Box越大失去更多的较高频信息
 
 <img src="Images\image-20240212132827313.png" alt="image-20240212132827313" style="zoom:67%;" />
 
-#### 5.4.1 MSAA(多重采样抗锯齿)
+#### 4.4.1 MSAA(多重采样抗锯齿)
 
 假设像素能被划分为无数个小的像素，每个像素都有一个中心，将它们的结果加起来平均
 
@@ -187,23 +175,23 @@ Box越大失去更多的较高频信息
 
 
 
-#### 5.4.2 FXAA(快速近似抗锯齿)
+#### 4.4.2 FXAA(快速近似抗锯齿)
 
 不增加样本数，类似图像的后期处理，将图像渲染出来进行边缘检测，再将边缘进行模糊，之后显示在屏幕上
 
 
 
-#### 5.4.3 TAA(时间性抗锯齿)
+#### 4.4.3 TAA(时间性抗锯齿)
 
 利用上一帧的信息
 
 
 
-## 6. Z-buffering(深度缓存)
+## 5. Z-buffering(深度缓存)
 
 解决物体的可见性和物体之间的遮挡问题
 
-### 6.1 Painter‘s Algorithm(画家算法)
+### 5.1 Painter‘s Algorithm(画家算法)
 
 由远及近一层层画，新画的覆盖之前画的
 
@@ -211,7 +199,7 @@ Box越大失去更多的较高频信息
 
 <img src="Images\image-20240212162711821.png" alt="image-20240212162711821" style="zoom:67%;" />
 
-### 6.2 Z-buffering
+### 5.2 Z-buffering
 
 同时生成两张图，一张是frame buffer存储颜色信息，另一个是depth buffer存储深度信息
 
@@ -229,7 +217,7 @@ Box越大失去更多的较高频信息
 
 
 
-## 7. Shadow Mapping(阴影贴图)
+## 6. Shadow Mapping(阴影贴图)
 
 **存在问题：**走样
 
@@ -241,13 +229,13 @@ Box越大失去更多的较高频信息
 
 
 
-### 7.1 Render from Light
+### 6.1 Render from Light
 
 为了知道一个点能否被光源所看到，最直观的方法就是站在光源的角度去看这些点，做一次光栅化记录看到的任何点的深度
 
 <img src="Images\image-20240217002347510.png" alt="image-20240217002347510" style="zoom:67%;" />
 
-### 7.2 Project to Light
+### 6.2 Project to Light
 
 从真正的角色视角或摄像机出发来看场景，计算光源到该点的深度 $D_0$ 。对于看到的点将其投影回Render from Light对应的位置，得到当时计算的深度 $D_1$​ ，之后比较两个值的大小，如果大小相同，说明该点被光照射，如果大小不同，说明此处应该为阴影区域
 

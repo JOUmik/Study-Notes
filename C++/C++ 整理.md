@@ -2,28 +2,26 @@
 
 [TOC]
 
-## 1. C++ 编译过程
+## 1. C++ 判断大端小端
 
-### 1.1 预编译
+~~~c++
+void judge_bigend_littleend3()
+{
+    union
+    {
+        int i;
+        char c;
+    }un;
+    un.i = 1;
 
-- 宏函数：在预编译时把所有宏名用宏体来替换
-- define
-
-### 1.2 编译
-
-- 内联函数：在编译时进行代码插入，省区函数调用开销，提高效率
-- const
-- 命名倾轧（name mangling）：同名函数重载，在编译阶段更改函数名来区分参数不同的同名函数
-- 虚函数表
-- 数组指针
-- 静态存储区的内容
-- const_cast, reinterpret_cast, static_cast
-
-### 1.3 汇编
+    if (un.c == 1)
+        printf("小端\n");
+    else
+        printf("大端\n");
+}
+~~~
 
 
-
-### 1.4 链接
 
 
 
@@ -112,7 +110,7 @@ accumulate(sweetness.begin(),sweetness.end(), 0)
 
 **虚函数表指针（vptr）**：当类中存在虚函数时，会自动创建隐形的虚函数表指针，该指针是成员变量，占用类对象的内存空间；
 
-**虚函数表（vtbl）**：当类中存在至少一个虚函数时，在**编译**期间会自动创建虚函数表，在编译链接生成可执行文件后，类和其对应的虚函数表会被保存到可执行文件中，虚函数表会存储在全局/静态存储区里，可执行文件执行时一并被加载到内存中；
+**虚函数表（vtbl）**：当类中存在至少一个虚函数时，在**编译**期间会自动创建虚函数表，在编译链接生成可执行文件后，类和其对应的虚函数表会被保存到可执行文件中，虚函数表会存储在**.rodata段**里，可执行文件执行时一并被加载到内存中；
 
 **vptr被赋值的时机以及vptr和vbtl的关系** ：在**编译**期间，编译器会向类的构造函数中安插为vptr赋值的语句。当创建该类对象时会调用该类的构造函数，因为构造函数中有给vptr赋值的语句从而使vptr指向类的vtbl
 
@@ -175,6 +173,14 @@ private:
 ![1710742184270](Image\1710742184270.png)
 
 
+
+****
+
+**问：构造函数和析构函数中可以调用虚函数吗**
+
+可以，但是此时调用的函数将是父类的虚函数实现，原因如下：
+
+在构造函数中，要先构造父类再执行后面的语句，因为在调用虚函数时编译器并不知道该派生类的变量有没有初始化完成，如果调用该派生类的虚函数并且该虚函数使用了还未初始化的变量可能会发生无法确定的错误，而调用父函数的虚函数一定不会出现问题。
 
 ## 6. C++编译过程
 
@@ -389,6 +395,61 @@ explicit则**禁用了该功能**
 
 
 
+- ### 全局函数指针
+
+- 全局函数指针用于指向普通的全局函数或静态成员函数。
+- 它直接存储函数的地址，调用时不需要指定调用上下文。
+- 全局函数指针的声明和使用相对简单：
+
+~~~c++
+void GlobalFunction(int) {
+    // Implementation
+}
+
+void (*functionPtr)(int) = &GlobalFunction; // Function pointer to a global function
+
+functionPtr(10); // Calling the function through the pointer
+
+~~~
+
+
+
+- ### 类的成员函数指针
+
+- 类成员函数指针指向的是类的成员函数，它们需要一个对象上下文来调用。
+- 成员函数指针不仅存储函数的地址，还需要一个对象实例（或指针）来调用该函数，因为成员函数通常操作对象的数据成员。
+- **如果是静态成员函数则可以不使用对象实例而直接调用该函数**
+- 成员函数指针的声明和使用稍微复杂一些：
+
+~~~c++
+class MyClass {
+public:
+    void MemberFunction(int) {
+        // Implementation
+    }
+    
+    static void StaticMemberFunction(int x) {
+        // 静态成员函数的实现
+    }
+};
+
+void (MyClass::*memberFunctionPtr)(int) = &MyClass::MemberFunction; // Pointer to a member function
+
+MyClass obj;
+(obj.*memberFunctionPtr)(10); // Calling the member function on an object
+
+MyClass* objPtr = &obj;
+(objPtr->*memberFunctionPtr)(10); // Calling the member function on an object pointer
+
+// 声明一个指向静态成员函数的函数指针
+void (*functionPtr)(int) = &MyClass::StaticMemberFunction;
+
+// 通过函数指针调用静态成员函数，不需要类的实例
+functionPtr(10);
+~~~
+
+
+
 ## 12. STL 容器的底层实现
 
 [C++STL的容器的底层实现详解_c++ stl 各种容器底层实现-CSDN博客](https://blog.csdn.net/qq_43313035/article/details/89600276)
@@ -461,6 +522,72 @@ start 迭代器记录着 map 数组中首个连续空间的信息，finish 迭�
 - **构造函数和析构函数**：`new`在分配内存的同时会调用对象的构造函数，为对象进行初始化。相应地，`delete`操作符会调用对象的析构函数。
 - **异常处理**：如果`new`无法分配所请求的内存，它会抛出一个`std::bad_alloc`异常，而不是像`malloc`那样返回`nullptr`。
 - **用法**：`new`的用法更符合C++的面向对象特性。
+
+
+
+****
+
+***new的重载***
+
+~~~c++
+#include <iostream>
+#include <new> // 为了使用 std::nothrow
+
+class MyClass {
+private:
+    static size_t allocCount; // 用于计数 MyClass 实例的分配次数
+
+public:
+    MyClass() {
+        // 构造函数，可以在这里添加额外的初始化代码
+    }
+
+    // 重载 new 操作符
+    static void* operator new(std::size_t size) {
+        ++allocCount; // 每次分配时，计数增加
+        std::cout << "Allocating MyClass, count: " << allocCount << std::endl;
+
+        // 使用全局 new 操作符分配内存
+        void* ptr = ::operator new(size);
+
+        // 检查内存分配是否成功
+        if (ptr == nullptr) {
+            throw std::bad_alloc(); // 如果内存分配失败，抛出异常
+        }
+
+        return ptr; // 返回分配的内存指针
+    }
+
+    // 重载 delete 操作符，如果需要的话
+    static void operator delete(void* ptr) noexcept {
+        std::cout << "Deallocating MyClass" << std::endl;
+        ::operator delete(ptr); // 使用全局 delete 释放内存
+    }
+
+    // 获取当前分配计数的静态方法
+    static size_t getAllocCount() {
+        return allocCount;
+    }
+};
+
+// 初始化静态成员变量
+size_t MyClass::allocCount = 0;
+
+int main() {
+    MyClass* obj1 = new MyClass(); // 分配 MyClass 实例
+    MyClass* obj2 = new MyClass(); // 再次分配 MyClass 实例
+
+    std::cout << "Total MyClass allocations: " << MyClass::getAllocCount() << std::endl;
+
+    delete obj1; // 释放内存
+    delete obj2; // 再次释放内存
+
+    return 0;
+}
+
+~~~
+
+
 
 
 
@@ -890,7 +1017,7 @@ Color myColor = Color::RED;  // 注意作用域解析符(::)
 
 ![image-20240408095649112](Image\image-20240408095649112.png)
 
-## 22 线程
+## 22.  多线程
 
 ~~~c++
 #include <iostream>
@@ -917,6 +1044,385 @@ int main(){
     std::cin.get();
 }
 ~~~
+
+
+
+
+
+### 22.1 join和detach
+
+在声明一个std::thread对象之后，都可以使用detach和join函数来启动被调线程，区别在于两者是否阻塞主调线程。
+
+（1）当使用join()函数时，主调线程阻塞，等待被调线程终止，然后主调线程回收被调线程资源，并继续运行；
+
+（2）当使用detach()函数时，主调线程继续运行，被调线程驻留后台运行，主调线程无法再取得该被调线程的控制权。当主调线程结束时，由运行时库负责清理与被调线程相关的资源。
+
+
+
+**问：detach的线程会变为守护线程吗**
+
+答：可以使用detach操作创建一个守护线程，但是并不是所有detach的线程都是守护线程，他们统一被称为**分离线程**，要了解原因就要看看守护线程的概念：
+
+**守护线程：**主要在后台运行，执行如垃圾收集、系统监控、日志记录等辅助或服务性质的任务。守护线程的关键特性是它不会阻止程序的终止；即当所有非守护线程（也称为用户线程）都结束时，程序会终止，同时杀死所有还在运行的守护线程。
+
+可以看出守护线程主要负责辅助或服务性质的任务，而分离线程的使用并不局限于辅助或服务其他线程
+
+
+
+### 22.2 lock_guard和unique_lock
+
+****
+
+**lock_guard**
+
+lock_guard 是C++标准库的一种互斥量封装类，用于保护共享数据，防止多个线程同时访问同一资源导致的数字竞争问题
+
+它的特点如下：
+
+- 当**构造函数**被调用时，该互斥量会被**自动**锁定；
+- 当**析构函数**被调用时，该互斥量会被**自动**解锁；
+
+lock_guard对象**不能复制或移动**，因为它禁用了拷贝构造函数和赋值构造函数，因此它**只能在局部作用域中使用**。
+
+~~~c++
+int a = 0;
+std::mutex mtx;
+void func_guard()
+{
+    for(int i = 0; i<5000; i++)
+    {
+        std::lock_guard<std::mutex> lg(mtx);    //自动对 mtx 进行加锁，当该作用域结束后会调用lg的析构函数，析构函数中自动对 mtx 解锁
+        a++;
+    }
+}
+~~~
+
+~~~c++
+lock_guard(const lock_guard&)            = delete;  //源代码禁用了拷贝构造函数
+lock_guard& operator=(const lock_guard&) = delete;  //源代码禁用了移动构造函数
+~~~
+
+****
+
+**unique_lock**
+
+unique_lock是C++标准库中提供的一个互斥量封装类，用于在多线程程序中对互斥量进行加锁和解锁的操作，它的主要特点是可以**对互斥量进行更灵活的管理**，包括延迟加锁，条件变量，超时等，**功能比lock_guard更强大**；
+
+~~~c++
+int a = 0;
+std::mutex mtx;
+void func_unique()
+{
+    for(int i = 0; i<5000; i++)
+    {
+        //只传入锁
+        std::unique_lock<std::mutex> lg(mtx);    //自动对 mtx 进行加锁，当该作用域结束后会调用lg的析构函数，析构函数中自动对 mtx 解锁
+        a++;
+    }
+}
+~~~
+
+
+
+- **defer_lock:** 使用defer_lock后，构造函数什么也不做，不会自动加锁，需要手动加锁，析构时会自动解锁，可以和try_lock_for配合使用
+- **try_lock_for:** **(线程的有限等待概念)** 等待一段时间，如果一段时间后仍然拿不到锁返回false继续执行后面内容，注意**只有timed_mutex能使用该函数**
+
+~~~c++
+std::timed_mutex tmtx;  //只有使用时间互斥锁才能进行延迟加锁
+int a = 0;
+void func_unique_defer_lock()
+{
+    for(int i = 0; i<5000; i++)
+    {
+        //同时传入defer_lock
+        std::unique_lock<std::timed_mutex> lg(tmtx, std::defer_lock);  //使用defer_lock后，构造函数什么也不做，不会自动加锁，需要手动加锁，析构时会自动解锁
+        bool bGetLock = lg.try_lock_for(std::chrono::seconds(2));   //尝试加锁，阻塞 2 秒，如果 2 秒后仍然无法加锁则返回 false 继续执行后面的程序
+        if(bGetLock)
+        {
+            //成功获得锁执行的内容
+            a++;
+        }
+        else
+        {
+            //没有成功获得锁执行的内容
+        }
+        //获没获得锁都执行的内容
+    }
+}  
+~~~
+
+- **try_lock_until:** 和try_lock_for类似，但是**传入**的不是等待的时间，而是一个**时间点**（比如12：30），如果到时间了还没拿到锁则返回false继续执行后面内容，但是**因为功能与try_lock_for类似所以很少使用**
+
+同样的，unique_lock对象**不能复制**，因为它禁用了拷贝构造函数和赋值构造函数。
+
+~~~c++
+unique_lock(const unique_lock&)            = delete;
+unique_lock& operator=(const unique_lock&) = delete;
+~~~
+
+
+
+但是unique_lock可以使用std::move来调用**移动构造函数和移动赋值构造函数**（这些和thread性质一样）
+
+~~~c++
+_NODISCARD_CTOR_LOCK unique_lock(unique_lock&& _Other) noexcept : _Pmtx(_Other._Pmtx), _Owns(_Other._Owns) {
+    _Other._Pmtx = nullptr;
+    _Other._Owns = false;
+}
+
+unique_lock& operator=(unique_lock&& _Other) noexcept /* strengthened */ {
+    if (this != _STD addressof(_Other)) {
+        if (_Owns) {
+            _Pmtx->unlock();
+        }
+
+        _Pmtx        = _Other._Pmtx;
+        _Owns        = _Other._Owns;
+        _Other._Pmtx = nullptr;
+        _Other._Owns = false;
+    }
+    return *this;
+}
+~~~
+
+同时，unique_lock**可以使用swap**来交换两个对象持有的锁
+
+~~~c++
+void swap(unique_lock& _Other) noexcept {
+    _STD swap(_Pmtx, _Other._Pmtx);
+    _STD swap(_Owns, _Other._Owns);
+}
+~~~
+
+
+
+### 22.3 call_once 及其使用场景
+
+> **使用场景：**单例模式的线程安全
+
+先看一个线程不安全的懒汉版本的单例模式：
+
+~~~c++
+class Log
+{
+private:
+    Log(){}
+public:
+    Log(const Log& log) = delete;
+    Log& operator=(const Log& log) = delete;
+
+    static Log& GetInstance()
+    {
+        static std::unique_ptr<Log> instance;
+        if(!instance) instance = std::unique_ptr<Log>(); //这里导致线程不安全
+
+        return *instance;
+    }
+
+    void PrintLog(std::string msg)
+    {
+        std::cout << __TIME__ << ": " << msg << "\n";
+    }
+};
+~~~
+
+解决该问题有两种方法，一种是**使用静态局部变量初始化**，如下所示：
+
+~~~c++
+static Log& GetInstance()
+    {
+        static std::unique_ptr<Log> instance(new Log());
+        return *instance;
+    }
+~~~
+
+C++运行时环境会确保`static std::unique_ptr<Log> instance(new Log());`这行代码只被一个线程执行，而且只执行一次。这是**通过内部机制（如使用锁或原子操作）来实现的**，确保即使多个线程同时到达初始化语句，也只有一个线程会进行初始化，其他线程将等待这个初始化完成。
+
+
+
+另一种方法就是**使用call_once:** (**call_once 只能在线程函数中使用**)
+
+call_once可以保证传入的函数在多个线程中只被执行一次
+
+
+
+### 22.4 condition_variable及其使用场景
+
+> **使用场景：**生产者-消费者模型
+
+条件变量（condition_variable）使用的**步骤**如下：
+
+1. 创建一个 std::condition_variable 对象,
+2. 创建一个互斥锁 std::mutex 对象，用来保护共享资源的访问。
+3. 在需要等待条件变量的地方使用 std::unique_lock\<std::mutex>对象锁定互斥锁
+4. 调用std::condition_variable::wait()、std::condition_variable::wait_for() 或 std::condition_variable::wait_until() 函数等待条件变量。
+5. 在其他线程中需要通知等待的线程时，调用 std::condition_variable::notify_one() 或 std::condition_variable::notify_all() 函数通知等待的线程。
+
+
+
+### 22.5 线程池
+
+​	线程池的目的是减少在程序执行过程中创建和销毁线程所带来的开销，提高性能，尤其是在高并发情况下。
+
+
+
+### 22.6 future, async, packaged_task, promise
+
+****
+
+***future***
+
+**future主要作用**：获取线程中函数的返回结果，在使用thread时如果要获得函数的返回结果只能使用全局变量，对于那些返回函数局部变量内容的结果就无法拿到了，而使用future和async，可以将结果存放在future中
+
+
+
+****
+
+***async***
+
+std::async是一个c++11引入的函数模板，用于异步执行一个函数并返回一个std::future对象，表示异步操作的结果。使用async可以方便的进行异步编程，避免了手动创建线程和管理线程的麻烦
+
+async的参数：启动策略（launch）和要传入的函数以其参数，其中launch分为两种：
+
+- **std::launch::async**: 函数将在新线程中异步执行，类似于使用`std::thread`。
+- **std::launch::deferred**: 函数调用将被延迟，直到调用 `std::future::get()` 或 `std::future::wait()` 时才在调用线程中执行，此时没有线程的分离或加入，因为实际上并没有新线程的创建。
+
+当async内的函数没有执行完时，调用future对象的get() 方法会阻塞当前线程，类似于thread的 `join()` 方法
+
+~~~c++
+//async
+std::future<int> future_res = std::async(std::launch::async, func01);   //async创建后像thread一样执行
+//使用get获取返回值，如果此时线程没有运行完则会阻塞当前线程，要注意的是get只能get一次
+std::cout << future_res.get() <<"\n";
+~~~
+
+
+
+****
+
+***packaged_task***
+
+
+
+****
+
+***promise***
+
+promise用于在线程中产生一个值，**并在另一个线程中获取这个值**，promise通常与future和async一起使用实现异步编程。
+
+`std::promise` 和 `std::future` 通常用于以下情况：
+
+- 当你需要从一个线程向另一个线程传递数据或异常时。
+- 在异步编程中，当任务的产出需要在未来某个不确定的时间点被其他线程使用时。
+
+- **传递数据：**
+
+~~~c++
+void producer(std::promise<int>&& prom) {
+    int value = 42;  // 生产者计算的值
+    // 模拟一些计算过程
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::cout << "Producer sets value: " << value << std::endl;
+    // 将结果传递给消费者
+    prom.set_value(value);
+}
+
+void consumer(std::future<int>&& fut) {
+    std::cout << "Consumer waiting for value..." << std::endl;
+    // 等待并获取生产者传递的值
+    int value = fut.get();
+    std::cout << "Consumer received value: " << value << std::endl;
+}
+
+int main() {
+    std::promise<int> prom;
+    // 获取与promise关联的future
+    std::future<int> fut = prom.get_future();
+
+    // 创建生产者和消费者线程
+    std::thread prodThread(producer, std::move(prom));
+    std::thread consThread(consumer, std::move(fut));
+
+    // 等待线程完成
+    prodThread.join();
+    consThread.join();
+
+    return 0;
+}
+~~~
+
+
+
+- **传递异常：**
+
+~~~c++
+void calculate(std::promise<int>&& prom) {
+    try {
+        // 执行一些操作
+        int result = 42; // 假设这是计算得到的结果
+        // 设置promise的值
+        prom.set_value(result);
+    } catch (...) {
+        // 捕获所有异常并设置到promise
+        prom.set_exception(std::current_exception());
+    }
+}
+
+int main() {
+    // 创建一个promise对象
+    std::promise<int> prom;
+    // 获取与promise关联的future
+    std::future<int> fut = prom.get_future();
+    
+    // 创建一个线程来执行计算
+    std::thread t(calculate, std::move(prom));
+    
+    try {
+        // 在主线程中获取结果
+        int result = fut.get();
+        std::cout << "Result: " << result << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "Caught exception: " << e.what() << std::endl;
+    }
+
+    // 确保线程完成
+    t.join();
+    return 0;
+}
+~~~
+
+
+
+### 22.7 atomic原子操作和内存屏障
+
+解决数据竞争的一种方法，用来实现多线程下的原子操作，**比使用互斥锁开销小**
+
+****
+
+**内存屏障**（Memory Barrier），也称为内存栅栏，是一种同步机制，用于控制不同线程中的操作顺序以及操作的内存可见性。内存屏障主要用于处理现代多处理器系统中由于指令重排序和内存访问优化带来的并发问题。
+
+
+
+内存屏障的主要作用是两个方面：
+
+1. **阻止指令重排序**：现代编译器和CPU为了优化性能，会对指令序列进行重排序。内存屏障可以阻止编译器和处理器在屏障之前和之后的指令重排序，确保屏障前的操作在屏障后的操作之前完成。
+2. **确保内存操作的可见性**：内存屏障可以确保一个线程中对共享内存的修改对其他线程可见，这是通过强制一致性刷新缓存来实现的。
+
+
+
+`std::atomic`操作提供了五种不同的内存顺序选项，它们影响**内存屏障**的行为：
+
+- **`std::memory_order_relaxed`**：不提供任何内存屏障，只保证本操作的原子性。
+- **`std::memory_order_acquire`**：确保屏障之前的读或写操作不会被重排到屏障之后。主要用于消费者线程，保证对共享数据的读取操作正确获取生产者线程的最新写入。
+- **`std::memory_order_release`**：确保屏障之后的读或写操作不会被重排到屏障之前。主要用于生产者线程，保证已完成的写操作对消费者线程可见。
+- **`std::memory_order_acq_rel`**：结合了`acquire`和`release`的属性，用于同时读写共享数据的场景。
+- **`std::memory_order_seq_cst`**（Sequentially Consistent）：这是最严格的内存顺序，提供全局执行的一致性顺序。这意味着，执行顺序对所有线程看起来就像是严格按照程序中的顺序一样，它会在操作前后都设置内存屏障。
+
+
+
+### 22.8 volatile
+
+`volatile` 关键字用于指示编译器某个变量的值可能在任何时刻被意外地改变，这种改变可能来自于程序的外部，例如操作系统、硬件或其他线程。因此，编译器不应对这些变量进行优化，以确保每次访问变量时都直接从其存储位置（通常是内存）读取其值。
 
 
 
