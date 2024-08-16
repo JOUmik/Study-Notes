@@ -1,6 +1,10 @@
-[TOC]
 
 
+
+
+
+
+# C#构建部分
 
 ## Recast
 
@@ -2186,8 +2190,8 @@ public void SimplifyContour(List<int> verts, List<int> simplified, float maxErro
         for (int i = 0, ni = verts.Count / 4; i < ni; i++)
         {
             int ii = (i + 1) % ni;
-            bool differentRegs = (verts[i * 4 + 3] & ContourRegMask) != (verts[ii * 4 + 3] & ContourRegMask); //0xffff
-            bool areaBorders = (verts[i * 4 + 3] & RC_AREA_BORDER) != (verts[ii * 4 + 3] & RC_AREA_BORDER);   //131072
+            bool differentRegs = (verts[i * 4 + 3] & ContourRegMask) != (verts[ii * 4 + 3] & ContourRegMask); //ContourRegMask 0xffff
+            bool areaBorders = (verts[i * 4 + 3] & RC_AREA_BORDER) != (verts[ii * 4 + 3] & RC_AREA_BORDER);   //RC_AREA_BORDER 131072
 
             if (differentRegs || areaBorders)
             {
@@ -2526,7 +2530,7 @@ public bool BuildPolyMesh(VoxelContourSet cset, int nvp, out VoxelMesh mesh)
             continue;
 
         maxVertices += cset.conts[i].nverts;
-        maxTris += cset.conts[i].nverts - 2;  //三角形数量 = 顶点数-2，比如4边形最多2个三角形，5边形最多3个三角形
+        maxTris += cset.conts[i].nverts - 2;  // 三角形数量 = 顶点数-2，比如4边形最多2个三角形，5边形最多3个三角形
         maxVertsPerCont = AstarMath.Max(maxVertsPerCont, cset.conts[i].nverts);
     }
 
@@ -2543,7 +2547,7 @@ public bool BuildPolyMesh(VoxelContourSet cset, int nvp, out VoxelMesh mesh)
     Pathfinding.Util.Memory.MemSet<int>(polys, 0xff, sizeof(int));
 
     int[] indices = new int[maxVertsPerCont];
-    int[] tris = new int[maxVertsPerCont * 3]; //一个点可能有很多三角形共用所以乘3
+    int[] tris = new int[maxVertsPerCont * 3]; // 一个点可能有很多三角形共用所以乘3
 
     int vertexIndex = 0;
     int polyIndex = 0;
@@ -2553,42 +2557,44 @@ public bool BuildPolyMesh(VoxelContourSet cset, int nvp, out VoxelMesh mesh)
     {
         VoxelContour cont = cset.conts[i];
 
-        //跳过无意义的边界
+        // 跳过无意义的边界
         if (cont.nverts < 3)
             continue;
 
         for (int j = 0; j < cont.nverts; j++)
         {
             indices[j] = j;
-            cont.verts[j * 4 + 2] /= voxelArea.width;  //相当于求得在第几行，这样就类似于坐标点（x，z），计算它对应位置时要x + z * width
+            cont.verts[j * 4 + 2] /= voxelArea.width;  // 相当于求得在第几行，这样就类似于坐标点（x，z），计算它对应索引位置时要x + z * width
         }
 
         bool triangleResult = false;
         int ntris = Triangulate(cont.nverts, cont.verts, ref indices, ref tris, ref triangleResult);
         result = result && triangleResult;
 
-        //tris里的数据索引是从0开始的，但是polys里保存了所有contour的三角形信息，所以添加到polys时要添加一个startIndex索引代表这个contour之前已经添加了多少其他contour的三角形
+        // tris里的数据索引是从0开始的，但是polys里保存了所有contour的三角形信息，所以添加到polys时要添加一个startIndex索引代表这个contour之前已经添加了多少其他contour的三角形
         int startIndex = vertexIndex;
         for (int j = 0; j < ntris * 3; polyIndex++, j++)
         {
             //@Error sometimes
-            polys[polyIndex] = tris[j] + startIndex;
+            polys[polyIndex] = tris[j] + startIndex;  // poly里存放的是组成三角形的某个顶点在verts中的索引位置
         }
 
+        //LayerFlag与每个三角形对应
         for (int j = 0; j < ntris; j++)
         {
             trisArea.Add((uint)cont.area);
         }
         for (int j = 0; j < cont.nverts; vertexIndex++, j++)
         {
-            verts[vertexIndex] = new VInt3(cont.verts[j * 4], cont.verts[j * 4 + 1], cont.verts[j * 4 + 2]);
+            // 按顺序存放顶点信息保证其和polys里的索引信息是对应的
+            verts[vertexIndex] = new VInt3(cont.verts[j * 4], cont.verts[j * 4 + 1], cont.verts[j * 4 + 2]);  
         }
     }
 
     mesh = new VoxelMesh();
     VInt3[] trimmedVerts = new VInt3[vertexIndex];
     
-    //需要放到trim里是因为之前的verts和polys都是设置的最大值，实际上可能用不到这么大的空间，会有很多空的数据
+    // 需要放到trim里是因为之前的verts和polys都是设置的最大值，实际上可能用不到这么大的空间，会有很多空的数据
     for (int i = 0; i < vertexIndex; i++)
     {
         trimmedVerts[i] = verts[i];
@@ -2678,7 +2684,7 @@ public int Triangulate(int n, int[] verts, ref int[] indices, ref int[] tris, re
         }
 
         
-        // 找到最短对角线就意味着分出了一个三角形，此时将该三角形信息存入dst中，dst中每三个数据代表一个三角形的三个顶点信息
+        // 找到最短对角线就意味着分出了一个三角形，此时将该三角形信息存入dst中，dst中每三个数据代表一个三角形的三个顶点索引信息
         int i = mini;
         int i1 = Next(i, n);
         int i2 = Next(i1, n);
@@ -3128,6 +3134,490 @@ public static void RemoveOverlappedVerts(ref VInt3[] verts, ref int[] tris, ref 
     {
         layerFlag = newLayerFlag.ToArray();
     }
+}
+~~~
+
+
+
+# CPP构建
+
+根据C#生成的信息构建出真正要使用的信息
+
+## 构建入口
+
+在Awake函数里对C#里的数据进行处理
+
+~~~c++
+void NavMesh::OnAwake()
+{
+#if SNAKE_TRACK
+	hashCode_ = 0;
+#endif//SNAKE_TRACK
+	if (SGameDesk->Navigation)
+	{
+		if (bDynamicTemplate)
+		{
+			SGameDesk->Navigation->AddDynamicTemplateNavMesh(this);
+		}
+		else if (bBothMainAndExtra)
+		{
+			SGameDesk->Navigation->AddExtraNavMesh(this);
+			SGameDesk->Navigation->AddNavMesh(this);
+		}
+		else if (bExtraNavMesh)
+		{
+			SGameDesk->Navigation->AddExtraNavMesh(this);
+		}
+		else if (bWallNavMesh)
+		{
+			SGameDesk->Navigation->AddWallNavMesh(this);
+		}
+		else
+		{
+			SGameDesk->Navigation->AddNavMesh(this);
+		}
+	}
+	CreateNodeStructure();
+	InitNodeConnectionCost();
+	CreateEntity();
+}
+~~~
+
+~~~c++
+void NavMesh::CreateNodeStructure(bool forceCreate)
+{
+	if (!forceCreate && !NeedCreateNodeStrcuture())
+	{
+		return;
+	}
+	CreateNodes();
+	CreateNodeConnections();
+	CreateCellHandler();
+	CreatePathNodes();
+}
+~~~
+
+
+
+## 创建节点
+
+### 类
+
+#### NavNode
+
+~~~c++
+class NavNode
+{
+public:
+	union
+	{
+		struct
+		{
+			uint32 v0_;
+			uint32 v1_;
+			uint32 v2_;
+		};
+		uint32 verts_[3];
+	};
+
+	VInt3 position_;
+	uint32 index_;
+	int32 connectedAreaIndex_;
+	NavLayerFlag layerFlag_;
+	uint8 influenceOrganCamp;
+	TArrayLite<NavConnection, 24> connections_;
+	//使点落在形状内部算法的搜索范围
+	static const int32 InShapeShortSearchRadius = 1;
+	static const int32 InShapeLongSearchRadius = 4;
+	static const int32 InShapeMaxSearchRadius = 8;
+public:
+	NavNode();
+	void Open(const NavMeshHandle& parent_, const PathHandle& path, const PathNodePtr& pathNode, const PathHandlerHandle& handler, NavLayerFlag layerFlag) const;
+	bool SearchPointOpen(const NavMeshHandle& parent_, const PathHandle& path, const PathNodePtr& pathNode, const PathHandlerHandle& handler, int32 pathDistance, VInt3& result, ConstNavNodePtr& nearestNode, NavLayerFlag layerFlag) const;
+
+	void UpdateG(const PathHandle& path, const PathNodePtr& pathNode) const;
+	void UpdateRecursiveG(const NavMeshHandle& parent_, const PathHandle& path, const PathNodePtr& pathNode, const PathHandlerHandle& handler, NavLayerFlag layerFlag) const;
+	bool ContainsConnection(const ConstNavNodePtr& node) const;
+	bool ContainsConnection(const ConstNavNodePtr& node, uint32& cost) const;
+
+	const VInt3& GetVertex(const NavMeshHandle& parent_, uint32 index) const;
+
+	void GetVertices(const NavMeshHandle& parent_, VInt3& v0, VInt3& v1, VInt3& v2) const;
+	void GetVertices(const NavMeshHandle& parent_, VInt3(&verts)[3]) const;
+
+	bool GetPortal(const NavMeshHandle& parent_, const ConstNavNodePtr& other, TArray<VInt3>& left, TArray<VInt3>& right) const;
+	bool GetPortal(const NavMeshHandle& parent_, const ConstNavNodePtr& other, TArray<VInt3>& left, TArray<VInt3>& right, bool backwards, int32& aIndex, int32& bIndex) const;
+
+	ConstNavNodePtr GetNeighborByEdge(const NavMeshHandle& parent_, int32 edge, int32& otherEdge, SGCore::NavLayerFlag layerFlag) const;
+	bool IsVertex(const NavMeshHandle& parent_, const VInt3& p, int32& index) const;
+
+	int32 EdgeIntersects(const NavMeshHandle& parent_, const VInt3& a, const VInt3& b) const;
+	int32 EdgeIntersects(const NavMeshHandle& parent_, VInt3 a, VInt3 b, int32 startEdge, int32 count) const;
+
+	bool ContainsPointXZ(const NavMeshHandle& parent_, const VInt3& p) const;
+	int32 GetColinearEdge(const NavMeshHandle& parent_, const VInt3& a, const VInt3& b) const;
+
+	bool MakePointInTriangle(const NavMeshHandle& parent_, VInt3& result) const;
+	bool MakePointInTriangle(const NavMeshHandle& parent_, VInt3& result, int32 minX, int32 maxX, int32 minZ, int32 maxZ, VInt3 offset) const;
+	void MakePointInTriangleExact(const NavMeshHandle& parent_, VInt3& result, VInt3 offset) const;
+	bool BelongLayer(NavLayerFlag layerFlag) const;
+
+	SGAME_INLINE bool ExcludeLayer(NavLayerFlag layerFlag) const
+	{
+		return (layerFlag_ & layerFlag) == 0;
+	}
+	SGAME_INLINE bool ExcludeLayer(int32 layerFlag) const
+	{
+		return (layerFlag_ & (NavLayerFlag)layerFlag) == 0;
+	}
+private:
+	static int32 FindAdjacentEdge(const uint32(&verts)[3], uint32 v0, uint32 v1);
+};
+~~~
+
+
+
+### 功能函数
+
+#### CreateNodes
+
+~~~c++
+//NavMesh类中的部分变量
+TArray<VInt3> verts_;
+TArray<int32> tris_;
+TArray<VInt2> oneWay_;
+TArray<uint32> layerFlags_;
+uint32 layerCount_;
+TArray<SGCore::NavNode> nodes_;
+VRect bounds_;
+
+//每个NavNode里存储三角形信息
+void NavMesh::CreateNodes()
+{
+	verts_.Trim();
+	tris_.Trim();
+	connectedAreaLabel_.Trim();
+
+	nodes_.Clear();
+	nodes_.FillInit(tris_.Count() / 3); //每三个代表一个三角形，所以三角形数量 = tris的size除以3
+
+	uint32 allLayerMark = 1;
+	bool hasLayerFlags = layerFlags_.Count() > 0;		
+	uint32 index = 0;
+	for (uint32 i = 0; i < tris_.Count(); i += 3)
+	{
+        //因为tris里每三个代表一个三角形，所以每三个读取
+		uint32 v0 = tris_[i + 0];
+		uint32 v1 = tris_[i + 1];
+		uint32 v2 = tris_[i + 2];
+
+		NavNodePtr node = &nodes_[index];
+		node->index_ = index;
+        
+        //保存三角形顶点的索引
+		node->v0_ = v0;
+		node->v1_ = v1;
+		node->v2_ = v2;
+
+        //node的位置用三角形中点表示
+		node->position_ = verts_[v0];
+		node->position_ += verts_[v1];
+		node->position_ += verts_[v2];
+		node->position_ /= 3;
+
+		node->layerFlag_ = SGCore::NavLayerFlag0;  //layerflag默认值
+		if (hasLayerFlags)
+		{
+			if (index < layerFlags_.Count())
+			{
+				node->layerFlag_ = (SGCore::NavLayerFlag)layerFlags_[index];  //layerFlag对应的是顶点形成的三角形区域，每个三角形对应一个flag
+				allLayerMark |= node->layerFlag_;  //存储这个NavMesh里用到的所有layerflag
+			}
+		}
+
+		node->connectedAreaIndex_ = -1;  //unexit label
+		if (connectedAreaLabel_.Count() > 0)
+		{
+			if (index < connectedAreaLabel_.Count())
+			{
+				node->connectedAreaIndex_ = connectedAreaLabel_[index];
+			}
+		}
+
+		index++;
+	}
+
+	layerCount_ = 0; //NavMesh类的变量
+	for (uint32 i = 0; i < 32; ++i)
+	{
+		if ((allLayerMark & (1 << i)) != 0)
+		{
+			layerCount_++; //allLayerMark二进制位中只要是1就说明存在一个layer，多少个1就有多少个layer
+		}
+	}
+
+    //根据各个顶点的位置来刷新Bound的区域
+	bounds_.x = INT_MAX;
+	bounds_.y = INT_MAX;
+	bounds_.width = INT_MIN;
+	bounds_.height = INT_MIN;
+
+	for (uint32 i = 0; i < verts_.Count(); ++i)
+	{
+		_AddVertex(bounds_, verts_[i]);
+	}
+
+	bounds_.width -= bounds_.x;
+	bounds_.height -= bounds_.y;
+}
+~~~
+
+
+
+#### _AddVertex
+
+```c++
+void _AddVertex(VRect& bounds, const VInt3& p)
+{
+    if (p.x < bounds.x)
+        bounds.x = p.x - 8;
+    if (p.x > bounds.width)
+        bounds.width = p.x + 8;
+
+    if (p.z < bounds.y)
+        bounds.y = p.z - 8;
+    if (p.z > bounds.height)
+        bounds.height = p.z + 8;
+}
+```
+
+
+
+## 构建节点连接关系
+
+根据三角形边的关系建立连接，因为Node已经存上了三个顶点对应的索引index，所以接下来就遍历所有的node，来根据index来创建边，然后判断共边性，就能判断连通性
+
+### 结构体
+
+#### NavConnection
+
+```c++
+struct NavConnection
+{
+    uint32 nodeIndex;
+    struct
+    {
+        uint32 cost : 30;
+        uint32 edge : 2;
+    };
+};
+```
+
+
+
+#### 功能函数
+
+#### CreateNodeConnections
+
+```c++
+void NavMesh::CreateNodeConnections()
+{
+    TMap<uint64, uint32> edgeMap;
+    edgeMap.Reserve(nodes_.Count() * 3);
+
+    uint64 a, b;
+    for (uint32 i = 0; i < nodes_.Count(); i++)
+    {
+       ConstNavNodePtr node = &nodes_[i];
+
+       //遍历三角形的三条边
+       for (uint32 j = 0; j < 3; ++j)
+       {
+          a = node->verts_[j];
+          b = node->verts_[(j + 1) % 3];
+
+          //每个边有一个唯一编码，编码方式是a<<32|b
+          uint64 edge = a << 32 | b;
+          if (!edgeMap.Contains(edge))
+             edgeMap.Add(edge, i);
+       }
+    }
+
+    //OnewayMap单独处理，逻辑同上
+    TMap<uint64, uint32> oneWayMap;
+    oneWayMap.Reserve(oneWay_.Count());
+    for (uint32 i = 0; i < oneWay_.Count(); i++)
+    {
+       a = oneWay_[i].x;
+       b = oneWay_[i].y;
+       uint64 edge = a << 32 | b;
+       if (!oneWayMap.Contains(edge))
+          oneWayMap.Add(edge, i);
+    }
+
+    
+    for (uint32 i = 0; i < nodes_.Count(); i++)
+    {
+       NavNodePtr node = &nodes_[i];
+       for (uint32 j = 0; j < 3; ++j)
+       {
+          a = node->verts_[j];
+          b = node->verts_[(j + 1) % 3];
+
+          //这里编码方向相反是因为三角形假设是统一按顺时针存放的，那么它临近的三个三角形读取点的顺序一定和它相反，所以边向量相反
+          uint64 edge = b << 32 | a;
+          uint32 index = 0;
+
+          //给单向节点添加临近一般节点
+          if (oneWayMap.TryGet(index, edge))
+          {
+             uint32 oneWayAdjacentNode = 0;
+             if (edgeMap.TryGet(oneWayAdjacentNode, edge))
+             {
+                oneWayNodeIndices_.Add(node->index_, oneWayAdjacentNode);
+             }
+             continue;
+          }
+
+          index = 0;
+          if (edgeMap.TryGet(index, edge))
+          {
+             NavConnection conn;
+             conn.edge = j;
+                    
+             VInt3 va = verts_[(int)a];
+             VInt3 vb = verts_[(int)b];
+
+              //叉乘计算node中点到ab边的投影
+             VFactor f = IntMath::NearestPointFactorXZ(va, vb, node->position_);
+             //vc是点position在边(va,vb)的投影点，cost则是中点position到边(va,vb）的距离
+             VInt3 vc = (vb - va) * f + va;                                               
+             uint32 cost2 = (uint32)(vc - node->position_).Magnitude();
+             //g是从start到当前片的NavNode相连的cost之和，h是当前片重心到end的直线距离。可能出现 g值<h值的情况，导致寻路结果不是权值意义上的最优
+             conn.cost = cost2;
+                
+             conn.nodeIndex = index;
+             //保存和其他三角形连接关系的信息
+             node->connections_.Add(conn);
+          }
+       }
+    }
+}
+```
+
+
+
+## 构建凸多边形
+
+### 类
+
+~~~c++
+class NavMeshCellHandler : public PooledObject
+{
+	DECLARE_POOLED_CLASS;
+public:
+
+	struct EdgeIndex
+	{
+		int32 index0;
+		int32 index1;
+
+		EdgeIndex(int32 _index0, int32 _index1)
+			: index0(_index0), index1(_index1)
+		{
+
+		}
+	};
+	struct Cell
+	{
+		TArrayLite<uint32> nodesIndex;
+
+		TArrayLite<uint32> points;
+
+		TArrayLite<EdgeIndex> ObstructEdges;
+
+#if MEMORY_INSPECT
+		Cell();
+#endif
+	};
+
+	struct Edge
+	{
+		int32 x0, y0;
+		int32 x1, y1;
+
+		void Init(const VInt3& v0, const VInt3& v1);
+	};
+
+
+	TArray<Cell> cells_;
+
+	int32 numX_;
+	int32 numY_;
+
+	int32 cellSize_;
+	VInt2 origin_;
+
+	NavMeshHandle parent_;
+
+	TArray<uint32> cellIncludeOneWayNode_;
+
+	  
+
+	struct CellIntersection
+	{
+		ConstNavNodePtr node;
+		int32 edge;
+		int64 distance;
+		VInt3 intersection;
+	};
+
+	
+/*
+     省略函数，具体内容直接查看代码文件
+*/
+};
+~~~
+
+
+
+### 功能函数
+
+#### CreateCellHandler
+
+~~~c++
+void NavMesh::CreateCellHandler()
+{
+    //cellHandler可以理解为用于将整个Mesh划分为一个个tile并对每个tile进行处理的类
+	if (!cellHandler_)
+	{
+		cellHandler_ = SGameDesk->GetHandle<NavMeshCellHandler>();
+	}
+	else
+	{
+		cellHandler_->Clear();
+	}
+
+	cellHandler_->parent_ = this;//setup parent first!
+	cellHandler_->Init(bounds_, cellSize_); //cellSize_ 相当于tileSize，这里的初始化根据bounds的长和宽以及cellSize划分出一个个网格
+
+	for (uint32 i = 0; i < nodes_.Count(); ++i)
+	{
+		cellHandler_->AddNode(&nodes_[i]);
+	}
+
+	cellHandler_->AddObstructEdge();
+	cellHandler_->SortOneWayNode();
+
+	TArray<NavMeshCellHandler::Cell>& cells = cellHandler_->cells_;
+	for (uint32 i = 0; i < cells.Count(); ++i)
+	{
+		NavMeshCellHandler::Cell& curCell = cells[i];
+		curCell.nodesIndex.Trim();
+		curCell.points.Trim();
+		curCell.ObstructEdges.Trim();
+	}
+	cells.Trim();
 }
 ~~~
 
