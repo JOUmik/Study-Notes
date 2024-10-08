@@ -120,3 +120,14 @@ UE5 Groom毛发设置绑定后 消失不见问题 或者导入第三方角色 �
 
 **Simple Parallel：**分为主任务和在后台运行的后台任务，二者同时运行 
 
+
+
+## 11. GAS
+
+### 11.1 GameplayAbility
+
+<img src="images\image-20241007165712473.png" alt="image-20241007165712473" style="zoom: 25%;" />
+
+<img src="images\image-20241007165637851.png" alt="image-20241007165637851" style="zoom: 25%;" />
+
+<img src="images\image-20241007165547009.png" alt="image-20241007165547009" style="zoom: 22%;" />
